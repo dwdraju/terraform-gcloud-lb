@@ -87,6 +87,31 @@ resource "google_compute_backend_service" "app" {
   health_checks = ["${google_compute_http_health_check.app.self_link}"]
 }
 
+resource "google_compute_backend_bucket" "image_backend" {
+  name        = "image-backend-bucket"
+  description = "Contains beautiful images"
+  bucket_name = "${google_storage_bucket.image_bucket.name}"
+  enable_cdn  = true
+}
+
+resource "google_storage_bucket" "image_bucket" {
+  name          = "my-image-store-bucket-7"
+  location      = "US"
+  force_destroy = "true"
+}
+
+resource "google_storage_bucket_iam_member" "member" {
+  bucket = "my-image-store-bucket-7"
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
+
+resource "google_storage_bucket_object" "picture" {
+  name   = "static/yay.jpg"
+  source = "static/yay.jpg"
+  bucket = "my-image-store-bucket-7"
+}
+
 resource "google_compute_url_map" "default" {
   name        = "loadbalancer"
   description = "URL Map Loadbalancer"
@@ -105,6 +130,11 @@ resource "google_compute_url_map" "default" {
     path_rule {
       paths   = ["/*"]
       service = "${google_compute_backend_service.app.self_link}"
+    }
+
+    path_rule {
+      paths   = ["/static/*"]
+      service = "${google_compute_backend_bucket.image_backend.self_link}"
     }
   }
 }
