@@ -1,0 +1,6 @@
+key/ssl/certificate.crt
+key/ssl/private.key
+key/testuser/pub.key
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
